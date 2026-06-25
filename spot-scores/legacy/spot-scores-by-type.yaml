@@ -1,0 +1,12 @@
+InstanceTypes:
+  # - c5.18xlarge
+  - c5a.24xlarge
+  - c6a.24xlarge
+  - c6i.24xlarge
+  - c7a.24xlarge
+  - c7i.24xlarge
+TargetCapacity: 1
+TargetCapacityUnitType: units
+SingleAvailabilityZone: true
+RegionNames:
+  - us-east-1

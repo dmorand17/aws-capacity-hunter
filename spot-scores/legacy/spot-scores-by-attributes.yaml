@@ -1,0 +1,19 @@
+InstanceRequirementsWithMetadata:
+  ArchitectureTypes:
+    - x86_64
+  # VirtualizationTypes:
+  #   - hvm
+  InstanceRequirements:
+    VCpuCount:
+      Min: 96
+      Max: 192
+    MemoryMiB:
+      Min: 196000
+      Max: 256000
+    # BurstablePerformance: excluded
+    # BareMetal: excluded
+TargetCapacity: 1
+TargetCapacityUnitType: units
+SingleAvailabilityZone: true
+RegionNames:
+  - us-east-1
