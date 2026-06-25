@@ -22,7 +22,8 @@ PRESETS: dict[str, dict] = {
     },
     "gpu": {
         "instance_types": [
-            "g5.2xlarge", "g6.2xlarge", "p4d.24xlarge", "p5.48xlarge",
+            "g5.2xlarge", "g6.2xlarge", "g6e.2xlarge", "g7.2xlarge",
+            "g7e.2xlarge", "p4d.24xlarge", "p5.48xlarge",
         ],
     },
     "flexible": {
@@ -40,6 +41,14 @@ PRESETS: dict[str, dict] = {
 def list_presets() -> list[str]:
     """Return preset names in sorted order."""
     return sorted(PRESETS)
+
+
+def describe_preset(name: str) -> str:
+    """Return a short, human-readable summary of a preset's contents."""
+    body = PRESETS[name]
+    if "instance_types" in body:
+        return ", ".join(body["instance_types"])
+    return "instance requirements (attribute-based)"
 
 
 def resolve_preset(name: str) -> dict:

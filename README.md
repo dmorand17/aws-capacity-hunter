@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="docs/img/aws-capacity-hunter3.png" alt="aws-capacity-hunter logo" width="240">
+</p>
+
 # aws-capacity-hunter
 
 A small collection of utilities for **finding and securing scarce EC2
@@ -9,7 +13,7 @@ that aren't available on the first try.
 
 | Tool | Purpose |
 |---|---|
-| [`scripts/reserve-capacity/`](scripts/reserve-capacity/) | Poll EC2 across multiple AZs to create an On-Demand Capacity Reservation, retrying until success or deadline. |
+| [`reserve-capacity/`](reserve-capacity/) | Poll EC2 across multiple AZs to create an On-Demand Capacity Reservation, retrying until success or deadline. |
 | [`spot-scores/`](spot-scores/) | Interactive Python CLI for EC2 Spot placement scores across regions/AZs — presets, color heatmap, and optional trend history. |
 
 See each tool's folder for its own README with full usage details.

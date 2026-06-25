@@ -1,7 +1,12 @@
 # tests/test_presets.py
 import pytest
 
-from spot_scores.presets import PRESETS, list_presets, resolve_preset
+from spot_scores.presets import (
+    PRESETS,
+    describe_preset,
+    list_presets,
+    resolve_preset,
+)
 
 
 def test_known_presets_exist():
@@ -22,6 +27,20 @@ def test_resolve_compute_returns_instance_types():
 def test_resolve_flexible_returns_requirements():
     body = resolve_preset("flexible")
     assert "instance_requirements" in body
+
+
+def test_gpu_preset_includes_current_generation():
+    types = resolve_preset("gpu")["instance_types"]
+    for t in ("g6e.2xlarge", "g7.2xlarge", "g7e.2xlarge"):
+        assert t in types
+
+
+def test_describe_preset_lists_instance_types():
+    assert "c7i.2xlarge" in describe_preset("compute")
+
+
+def test_describe_preset_handles_requirements():
+    assert "requirements" in describe_preset("flexible")
 
 
 def test_resolve_unknown_raises_with_valid_names():

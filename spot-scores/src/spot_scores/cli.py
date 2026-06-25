@@ -7,9 +7,13 @@ import boto3
 import click
 
 from spot_scores.history import load_runs, save_run
-from spot_scores.presets import list_presets, resolve_preset
+from spot_scores.presets import describe_preset, list_presets, resolve_preset
 from spot_scores.rank import rank_scores
-from spot_scores.render import build_heatmap_table, render_table
+from spot_scores.render import (
+    build_heatmap_table,
+    build_presets_table,
+    render_table,
+)
 from spot_scores.scoring import (
     ScoringError,
     build_request,
@@ -36,16 +40,23 @@ def _selection(preset, instance_types):
         return resolve_preset(preset)
     if instance_types:
         return {"instance_types": _split(instance_types)}
-    presets = ", ".join(list_presets())
+
+    names = list_presets()
+    rows = [(i, name, describe_preset(name)) for i, name in enumerate(names, 1)]
+    custom_number = len(names) + 1
+    rows.append((custom_number, "custom", "enter your own instance types"))
+    render_table(build_presets_table(rows))
+
     choice = click.prompt(
-        f"Preset ({presets}) or leave blank to enter instance types",
-        default="",
-        show_default=False,
+        "Select a preset by number",
+        type=click.Choice([str(n) for n, _, _ in rows]),
+        default="1",
+        show_choices=False,
     )
-    if choice:
-        return resolve_preset(choice)
-    types = click.prompt("Instance types (comma-separated)")
-    return {"instance_types": _split(types)}
+    if int(choice) == custom_number:
+        types = click.prompt("Instance types (comma-separated)")
+        return {"instance_types": _split(types)}
+    return resolve_preset(names[int(choice) - 1])
 
 
 @click.group()
@@ -72,7 +83,7 @@ def scores(preset, instance_types, regions, top, az, profile, region,
     region_list = _split(regions)
     if not region_list:
         region_list = _split(
-            click.prompt("Regions (comma-separated)")
+            click.prompt("Regions (comma-separated)", default="us-east-1")
         )
 
     request = build_request(selection, regions=region_list)

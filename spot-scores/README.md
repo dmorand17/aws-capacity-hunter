@@ -48,8 +48,9 @@ uv run spot-scores --help
 uv run spot-scores scores
 ```
 
-You'll be prompted for a preset (or explicit instance types) and the
-region(s).
+You'll see a numbered table of presets (each showing the instance types it
+expands to, plus a "custom" option) and pick one by number, then enter the
+region(s) — defaulting to `us-east-1`.
 
 ### Non-interactive (flags)
 
@@ -96,7 +97,7 @@ have to know exact type names.
 | `general` | m-family current-gen (m6i/m6a/m7i/m7a) |
 | `compute` | c-family current-gen (c6i/c6a/c7i/c7a) |
 | `memory` | r-family current-gen (r6i/r6a/r7i/r7a) |
-| `gpu` | g/p current-gen (g5/g6/p4d/p5) |
+| `gpu` | g/p current-gen (g5/g6/g6e/g7/g7e/p4d/p5) |
 | `flexible` | attribute-based: vCPU/memory range, lets EC2 pick types |
 
 **Note:** "current generation" cannot be reliably auto-discovered, so preset

@@ -37,6 +37,17 @@ def build_heatmap_table(records: list[ScoreRecord]) -> Table:
     return table
 
 
+def build_presets_table(presets: list[tuple[int, str, str]]) -> Table:
+    """One numbered row per choice: index, name, and what it expands to."""
+    table = Table(title="Available presets")
+    table.add_column("#", justify="right", style="dim", no_wrap=True)
+    table.add_column("Preset", style="cyan", no_wrap=True)
+    table.add_column("Expands to")
+    for number, name, description in presets:
+        table.add_row(str(number), name, description)
+    return table
+
+
 def render_table(table: Table) -> None:
     """Print a table to the shared console."""
     _CONSOLE.print(table)
