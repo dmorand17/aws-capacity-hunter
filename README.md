@@ -44,12 +44,15 @@ until one has capacity:
 ./reserve-capacity/reserve-capacity.sh --type g6.xlarge
 ```
 
-**Check Spot placement scores** — launch the interactive wizard:
+**Check Spot placement scores** — install the CLI globally with uv, then
+launch the interactive wizard:
 
 ```bash
-cd spot-scores
-uv run spot-scores scores
+uv tool install ./spot-scores
+spot-scores scores
 ```
+
+(Or run it from source without installing: `cd spot-scores && uv run spot-scores scores`.)
 
 ## Requirements
 
