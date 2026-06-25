@@ -1,0 +1,17 @@
+# Logs
+*.log
+
+# Captured reservation output
+*.id
+reservation.id
+
+# Environment / credentials
+.env
+.env.*
+*.pem
+
+# OS / editor cruft
+.DS_Store
+*.swp
+.idea/
+.vscode/
