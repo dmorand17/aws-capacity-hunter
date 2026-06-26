@@ -30,15 +30,39 @@ It runs under **your own AWS credentials** and replaces the older
 
 ## Install
 
+### Global command (recommended)
+
+Install `spot-scores` as a standalone CLI on your `PATH` with
+[`uv tool`](https://docs.astral.sh/uv/guides/tools/) — an isolated environment
+managed by uv, no manual venv or `uv run` needed:
+
+```bash
+uv tool install .
+```
+
+Then run it from anywhere:
+
+```bash
+spot-scores --help
+spot-scores scores
+```
+
+This is a snapshot install — after changing the source, refresh it with
+`uv tool install --reinstall .`. Manage it with `uv tool list`,
+`uv tool upgrade spot-scores`, and `uv tool uninstall spot-scores`.
+
+### From source (development)
+
+To run against the working tree without installing, sync the environment and
+use `uv run`:
+
 ```bash
 uv sync
-```
-
-Run via `uv run`:
-
-```bash
 uv run spot-scores --help
 ```
+
+> The examples below use `uv run spot-scores`; if you installed the global
+> command, drop the `uv run` prefix and just call `spot-scores`.
 
 ## Usage
 
