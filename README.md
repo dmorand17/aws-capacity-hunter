@@ -1,8 +1,12 @@
 <p align="center">
-  <img src="docs/img/aws-capacity-hunter3.png" alt="aws-capacity-hunter logo" width="420">
+  <img src="docs/img/aws-capacity-hunter3.png" alt="aws-capacity-hunter logo">
 </p>
 
-<h1 align="center">aws-capacity-hunter</h1>
+<p align="center">
+<em>Capacity acquired.</em>
+</p>
+
+<hr/>
 
 <p align="center">
   Hunt down scarce EC2 capacity — On-Demand Capacity Reservations (ODCR)
