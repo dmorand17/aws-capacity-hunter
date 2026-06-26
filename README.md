@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/img/aws-capacity-hunter3.png" alt="aws-capacity-hunter logo">
+  <img src="docs/img/aws-capacity-hunter4.png" alt="aws-capacity-hunter logo">
 </p>
 
 <p align="center">
