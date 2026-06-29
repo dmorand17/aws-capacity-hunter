@@ -4,9 +4,18 @@ import json
 from dataclasses import asdict
 from pathlib import Path
 
+from spot_scores.reserve import ReservationResult
 from spot_scores.scoring import ScoreRecord
 
 DEFAULT_PATH = Path.home() / ".spot-scores" / "history.jsonl"
+
+
+def _append(entry: dict, path: Path | None) -> None:
+    """Write one entry as a JSON line, creating the directory if needed."""
+    path = path or DEFAULT_PATH
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("a", encoding="utf-8") as handle:
+        handle.write(json.dumps(entry) + "\n")
 
 
 def save_run(
@@ -15,23 +24,45 @@ def save_run(
     timestamp: str,
     path: Path | None = None,
 ) -> None:
-    """Append one run as a JSON line, creating the directory if needed."""
-    path = path or DEFAULT_PATH
-    path.parent.mkdir(parents=True, exist_ok=True)
-    entry = {
-        "timestamp": timestamp,
-        "meta": meta,
-        "scores": [asdict(r) for r in records],
-    }
-    with path.open("a", encoding="utf-8") as handle:
-        handle.write(json.dumps(entry) + "\n")
+    """Append one score run as a JSON line."""
+    _append(
+        {
+            "kind": "scores",
+            "timestamp": timestamp,
+            "meta": meta,
+            "scores": [asdict(r) for r in records],
+        },
+        path,
+    )
+
+
+def save_reservation(
+    result: ReservationResult,
+    meta: dict,
+    timestamp: str,
+    path: Path | None = None,
+) -> None:
+    """Append one successful reservation as a JSON line."""
+    _append(
+        {
+            "kind": "reserve",
+            "timestamp": timestamp,
+            "meta": meta,
+            "reservation": asdict(result),
+        },
+        path,
+    )
 
 
 def load_runs(
     meta_filter: dict | None = None,
+    kind: str | None = None,
     path: Path | None = None,
 ) -> list[dict]:
-    """Read run dicts, optionally filtered by a meta subset match."""
+    """Read run dicts, optionally filtered by kind and a meta subset match.
+
+    Entries written before the "kind" field are treated as "scores".
+    """
     path = path or DEFAULT_PATH
     if not path.exists():
         return []
@@ -42,6 +73,8 @@ def load_runs(
             if not line:
                 continue
             run = json.loads(line)
+            if kind and run.get("kind", "scores") != kind:
+                continue
             if meta_filter:
                 meta = run.get("meta", {})
                 if any(meta.get(k) != v for k, v in meta_filter.items()):

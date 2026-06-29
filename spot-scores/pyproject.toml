@@ -1,7 +1,7 @@
 [project]
 name = "spot-scores"
 version = "0.1.0"
-description = "Interactive EC2 Spot Placement Score tool."
+description = "Hunt scarce EC2 capacity: Spot Placement Scores and On-Demand Capacity Reservations."
 readme = "README.md"
 requires-python = ">=3.11"
 license = "MIT"
@@ -13,7 +13,8 @@ dependencies = [
 ]
 
 [project.scripts]
-spot-scores = "spot_scores.cli:main"
+capacity-hunter = "spot_scores.cli:main"
+spot-scores = "spot_scores.cli:main"     # backwards-compat alias
 
 [dependency-groups]
 dev = [

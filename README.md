@@ -9,18 +9,26 @@ capacity** — On-Demand Capacity Reservations (ODCR) and Spot placement scores.
 Built for grabbing hard-to-get instance types (e.g. GPU families like `g6`)
 that aren't available on the first try.
 
-## Utilities
+## The CLI
 
-| Tool | Purpose |
+Everything lives in one Python CLI, [`capacity-hunter`](spot-scores/) (also
+installed as `spot-scores` for backwards compatibility):
+
+| Command | Purpose |
 |---|---|
-| [`reserve-capacity/`](reserve-capacity/) | Poll EC2 across multiple AZs to create an On-Demand Capacity Reservation, retrying until success or deadline. |
-| [`spot-scores/`](spot-scores/) | Interactive Python CLI for EC2 Spot placement scores across regions/AZs — presets, color heatmap, and optional trend history. |
+| `capacity-hunter scores` | EC2 Spot placement scores across regions/AZs — presets, color heatmap, side-by-side `--compare`, and optional trend history. |
+| `capacity-hunter reserve` | Poll EC2 across multiple AZs to create an On-Demand Capacity Reservation, retrying until success or deadline. `--by-score` orders AZ attempts by placement score. |
+| `capacity-hunter reserve list` / `cancel` | List or cancel existing capacity reservations. |
+| `capacity-hunter history` | Show saved score trends and reservations. |
 
-See each tool's folder for its own README with full usage details.
+See [`spot-scores/README.md`](spot-scores/README.md) for full usage details.
+
+The original standalone bash scripts now live in [`legacy/`](legacy/), kept for
+reference only.
 
 ## Requirements
 
-- `bash` 4+
-- [`aws`](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html) CLI v2, configured with credentials for the relevant EC2 actions
-- `date` (coreutils)
-- [`uv`](https://docs.astral.sh/uv/) and Python 3.11+ (for `spot-scores/`)
+- [`uv`](https://docs.astral.sh/uv/) and Python 3.11+
+- AWS credentials configured for the relevant EC2 actions
+  (`ec2:GetSpotPlacementScores`, `ec2:CreateCapacityReservation`,
+  `ec2:DescribeCapacityReservations`, `ec2:CancelCapacityReservation`)
