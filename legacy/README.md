@@ -1,7 +1,7 @@
 # legacy
 
 Original standalone scripts, kept for reference only. Both have been replaced
-by the unified **`capacity-hunter`** CLI in [`../spot-scores/`](../spot-scores/).
+by the unified **`capacity-hunter`** CLI at the [repository root](../).
 
 | Script | Superseded by |
 |---|---|

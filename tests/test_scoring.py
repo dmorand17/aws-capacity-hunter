@@ -3,7 +3,7 @@ import pytest
 from botocore.stub import Stubber
 import boto3
 
-from spot_scores.scoring import (
+from capacity_hunter.scoring import (
     ScoreRecord,
     ScoringError,
     build_request,

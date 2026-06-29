@@ -1,6 +1,6 @@
 # tests/test_rank.py
-from spot_scores.scoring import ScoreRecord
-from spot_scores.rank import rank_scores
+from capacity_hunter.scoring import ScoreRecord
+from capacity_hunter.rank import rank_scores
 
 
 def _records():

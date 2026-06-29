@@ -6,7 +6,7 @@ import pytest
 from botocore.exceptions import ClientError
 from botocore.stub import Stubber
 
-from spot_scores.reserve import (
+from capacity_hunter.reserve import (
     AttemptOutcome,
     ReservationResult,
     ReserveError,

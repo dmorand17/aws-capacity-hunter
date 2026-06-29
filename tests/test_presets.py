@@ -1,7 +1,7 @@
 # tests/test_presets.py
 import pytest
 
-from spot_scores.presets import (
+from capacity_hunter.presets import (
     PRESETS,
     describe_preset,
     list_presets,

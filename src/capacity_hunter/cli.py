@@ -6,10 +6,10 @@ from dataclasses import asdict
 import boto3
 import click
 
-from spot_scores.history import load_runs, save_reservation, save_run
-from spot_scores.presets import describe_preset, list_presets, resolve_preset
-from spot_scores.rank import rank_scores
-from spot_scores.render import (
+from capacity_hunter.history import load_runs, save_reservation, save_run
+from capacity_hunter.presets import describe_preset, list_presets, resolve_preset
+from capacity_hunter.rank import rank_scores
+from capacity_hunter.render import (
     build_compare_table,
     build_heatmap_table,
     build_presets_table,
@@ -18,7 +18,7 @@ from spot_scores.render import (
     render_table,
     render_table_err,
 )
-from spot_scores.reserve import (
+from capacity_hunter.reserve import (
     ReserveError,
     _region_from_az,
     azs_by_score,
@@ -26,7 +26,7 @@ from spot_scores.reserve import (
     list_reservations,
     poll_for_reservation,
 )
-from spot_scores.scoring import (
+from capacity_hunter.scoring import (
     ScoringError,
     build_request,
     get_scores,

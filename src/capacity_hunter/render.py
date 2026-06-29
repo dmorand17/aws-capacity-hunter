@@ -3,8 +3,8 @@
 from rich.console import Console
 from rich.table import Table
 
-from spot_scores.reserve import ReservationInfo, ReservationResult
-from spot_scores.scoring import ScoreRecord
+from capacity_hunter.reserve import ReservationInfo, ReservationResult
+from capacity_hunter.scoring import ScoreRecord
 
 _CONSOLE = Console()
 # Reservation progress and summaries go to stderr so stdout stays clean
