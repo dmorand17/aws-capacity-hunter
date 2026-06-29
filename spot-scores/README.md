@@ -37,15 +37,41 @@ scripts (now in [`../legacy/`](../legacy/)).
 
 ## Install
 
+### Global command (recommended)
+
+Install the CLI on your `PATH` with
+[`uv tool`](https://docs.astral.sh/uv/guides/tools/) — an isolated environment
+managed by uv, no manual venv or `uv run` needed:
+
+```bash
+uv tool install .
+```
+
+This installs the `capacity-hunter` command (and `spot-scores` as an alias), so
+you can run it from anywhere:
+
+```bash
+capacity-hunter --help
+capacity-hunter scores
+```
+
+This is a snapshot install — after changing the source, refresh it with
+`uv tool install --reinstall .`. Manage it with `uv tool list`,
+`uv tool upgrade spot-scores`, and `uv tool uninstall spot-scores`.
+
+### From source (development)
+
+To run against the working tree without installing, sync the environment and
+use `uv run`:
+
 ```bash
 uv sync
-```
-
-Run via `uv run`:
-
-```bash
 uv run capacity-hunter --help     # or: uv run spot-scores --help
 ```
+
+> The examples below use `uv run capacity-hunter`; if you installed the global
+> command, drop the `uv run` prefix and just call `capacity-hunter` (or its
+> `spot-scores` alias).
 
 ## `scores` — Spot placement scores
 
