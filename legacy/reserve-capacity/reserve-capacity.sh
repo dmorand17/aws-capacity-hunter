@@ -2,6 +2,9 @@
 set -euo pipefail
 
 # Script: reserve-capacity.sh
+# DEPRECATED: superseded by the `capacity-hunter reserve` command in the
+#             capacity-hunter Python CLI (see ../../README.md).
+#             Kept for reference only.
 # Description: Poll EC2 across multiple AZs to create an On-Demand Capacity
 #              Reservation, retrying on a fixed interval until success or deadline.
 # Author: domorand

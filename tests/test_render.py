@@ -1,8 +1,8 @@
 # tests/test_render.py
 from rich.table import Table
 
-from spot_scores.scoring import ScoreRecord
-from spot_scores.render import (
+from capacity_hunter.scoring import ScoreRecord
+from capacity_hunter.render import (
     build_heatmap_table,
     build_presets_table,
     score_band,

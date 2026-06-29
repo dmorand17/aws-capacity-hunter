@@ -2,7 +2,7 @@
 
 from itertools import groupby
 
-from spot_scores.scoring import ScoreRecord
+from capacity_hunter.scoring import ScoreRecord
 
 
 def rank_scores(
