@@ -1,10 +1,11 @@
-"""click CLI: interactive wizard plus flag-driven non-interactive use."""
+"""typer CLI: interactive wizard plus flag-driven non-interactive use."""
 
 import json
 from dataclasses import asdict
+from enum import Enum
 
 import boto3
-import click
+import typer
 
 from capacity_hunter.history import load_runs, save_reservation, save_run
 from capacity_hunter.presets import describe_preset, list_presets, resolve_preset
@@ -35,6 +36,26 @@ from capacity_hunter.scoring import (
 DEFAULT_AZS = "us-east-1a,us-east-1b,us-east-1c,us-east-1d,us-east-1f"
 
 
+class OutputFormat(str, Enum):
+    """Rendering formats for command output."""
+
+    table = "table"
+    json = "json"
+
+
+class HistoryKind(str, Enum):
+    """Kinds of history entries."""
+
+    scores = "scores"
+    reserve = "reserve"
+
+
+def _fail(message):
+    """Print an error to stderr and exit non-zero."""
+    typer.echo(message, err=True)
+    raise typer.Exit(code=1)
+
+
 def _make_client(profile, region):
     """Build a boto3 EC2 client from an optional profile/region."""
     session = boto3.Session(profile_name=profile, region_name=region)
@@ -61,14 +82,12 @@ def _selection(preset, instance_types):
     rows.append((custom_number, "custom", "enter your own instance types"))
     render_table(build_presets_table(rows))
 
-    choice = click.prompt(
-        "Select a preset by number",
-        type=click.Choice([str(n) for n, _, _ in rows]),
-        default="1",
-        show_choices=False,
-    )
+    valid = {str(n) for n, _, _ in rows}
+    choice = typer.prompt("Select a preset by number", default="1")
+    while choice not in valid:
+        choice = typer.prompt("Select a preset by number", default="1")
     if int(choice) == custom_number:
-        types = click.prompt("Instance types (comma-separated)")
+        types = typer.prompt("Instance types (comma-separated)")
         return {"instance_types": _split(types)}
     return resolve_preset(names[int(choice) - 1])
 
@@ -81,32 +100,34 @@ def _resolve_label(token):
         return {"instance_types": [token]}
 
 
-@click.group()
-def main():
-    """Hunt scarce EC2 capacity: Spot scores and capacity reservations."""
+main = typer.Typer(
+    add_completion=False,
+    help="Hunt scarce EC2 capacity: Spot scores and capacity reservations.",
+)
 
 
 @main.command()
-@click.option("--preset", help="Named instance-family preset.")
-@click.option("--instance-types", help="Comma-separated instance types.")
-@click.option("--compare", help="Comma-separated presets/types to compare "
-              "side-by-side.")
-@click.option("--regions", help="Comma-separated region names.")
-@click.option("-n", "--top", default=3, show_default=True,
-              help="Top N results per AZ.")
-@click.option("--az", help="Comma-separated AZ IDs to filter output.")
-@click.option("--profile", help="AWS profile name.")
-@click.option("--region", help="AWS region for the API call.")
-@click.option("--save", is_flag=True, help="Append this run to history.")
-@click.option("--output", type=click.Choice(["table", "json"]),
-              default="table", show_default=True)
-def scores(preset, instance_types, compare, regions, top, az, profile,
-           region, save, output):
+def scores(
+    preset: str = typer.Option(None, help="Named instance-family preset."),
+    instance_types: str = typer.Option(
+        None, help="Comma-separated instance types."
+    ),
+    compare: str = typer.Option(
+        None, help="Comma-separated presets/types to compare side-by-side."
+    ),
+    regions: str = typer.Option(None, help="Comma-separated region names."),
+    top: int = typer.Option(3, "-n", "--top", help="Top N results per AZ."),
+    az: str = typer.Option(None, help="Comma-separated AZ IDs to filter output."),
+    profile: str = typer.Option(None, help="AWS profile name."),
+    region: str = typer.Option(None, help="AWS region for the API call."),
+    save: bool = typer.Option(False, help="Append this run to history."),
+    output: OutputFormat = typer.Option(OutputFormat.table),
+):
     """Query Spot Placement Scores and render results."""
     region_list = _split(regions)
     if not region_list:
         region_list = _split(
-            click.prompt("Regions (comma-separated)", default="us-east-1")
+            typer.prompt("Regions (comma-separated)", default="us-east-1")
         )
 
     if compare:
@@ -120,12 +141,12 @@ def scores(preset, instance_types, compare, regions, top, az, profile,
         client = _make_client(profile, region or region_list[0])
         records = get_scores(client, request)
     except ScoringError as err:
-        raise click.ClickException(str(err))
+        _fail(str(err))
 
     ranked = rank_scores(records, top_n=top, az_filter=_split(az))
 
-    if output == "json":
-        click.echo(json.dumps([asdict(r) for r in ranked], indent=2))
+    if output == OutputFormat.json:
+        typer.echo(json.dumps([asdict(r) for r in ranked], indent=2))
     else:
         render_table(build_heatmap_table(ranked))
 
@@ -146,10 +167,10 @@ def _compare(labels, region_list, top, az, profile, region, output):
                 records, top_n=top, az_filter=_split(az)
             )
     except ScoringError as err:
-        raise click.ClickException(str(err))
+        _fail(str(err))
 
-    if output == "json":
-        click.echo(json.dumps(
+    if output == OutputFormat.json:
+        typer.echo(json.dumps(
             {label: [asdict(r) for r in recs]
              for label, recs in records_by_label.items()},
             indent=2,
@@ -170,11 +191,11 @@ def _reserve_logger():
     def log(event):
         kind = event["type"]
         if kind == "trying":
-            click.echo(f"Trying {event['az']}...", err=True)
+            typer.echo(f"Trying {event['az']}...", err=True)
         elif kind == "insufficient":
-            click.echo(f"No capacity in {event['az']}", err=True)
+            typer.echo(f"No capacity in {event['az']}", err=True)
         elif kind == "throttled":
-            click.echo(
+            typer.echo(
                 f"Throttled by EC2 in {event['az']}; "
                 "consider a longer --interval",
                 err=True,
@@ -182,7 +203,7 @@ def _reserve_logger():
         elif kind == "sleeping":
             remaining = event["remaining"]
             left = "forever" if remaining is None else f"{int(remaining)}s left"
-            click.echo(
+            typer.echo(
                 f"No capacity this round ({left}); "
                 f"sleeping {int(event['interval'])}s...",
                 err=True,
@@ -190,43 +211,58 @@ def _reserve_logger():
     return log
 
 
-@main.group(invoke_without_command=True)
-@click.option("-t", "--instance-type", help="Instance type, e.g. g6.xlarge.")
-@click.option("--azs", default=DEFAULT_AZS, show_default=True,
-              help="Comma-separated AZs to try, in order.")
-@click.option("-c", "--count", default=1, show_default=True,
-              help="Instance count.")
-@click.option("-i", "--interval", default=60, show_default=True,
-              help="Seconds between rounds.")
-@click.option("-d", "--duration", default=21600, show_default=True,
-              help="Total runtime in seconds; 0 = forever.")
-@click.option("--by-score", is_flag=True,
-              help="Order AZ attempts by Spot placement score (best first).")
-@click.option("--profile", help="AWS profile name.")
-@click.option("--region", help="AWS region (derived from AZs if omitted).")
-@click.option("--save", is_flag=True, help="Append the reservation to history.")
-@click.option("--dry-run", is_flag=True, help="Print the plan and exit.")
-@click.option("--output", type=click.Choice(["table", "json"]),
-              default="table", show_default=True)
-@click.pass_context
-def reserve(ctx, instance_type, azs, count, interval, duration, by_score,
-            profile, region, save, dry_run, output):
-    """Poll across AZs to create an On-Demand Capacity Reservation.
+reserve = typer.Typer(
+    invoke_without_command=True,
+    help="Poll across AZs to create an On-Demand Capacity Reservation.\n\n"
+    "Run with no subcommand to start polling; use the 'list' and 'cancel' "
+    "subcommands to manage existing reservations.",
+)
+main.add_typer(reserve, name="reserve")
 
-    Run with no subcommand to start polling; use the 'list' and 'cancel'
-    subcommands to manage existing reservations.
-    """
+
+@reserve.callback(invoke_without_command=True)
+def reserve_main(
+    ctx: typer.Context,
+    instance_type: str = typer.Option(
+        None, "-t", "--instance-type", help="Instance type, e.g. g6.xlarge."
+    ),
+    azs: str = typer.Option(
+        DEFAULT_AZS, help="Comma-separated AZs to try, in order."
+    ),
+    count: int = typer.Option(1, "-c", "--count", help="Instance count."),
+    interval: int = typer.Option(
+        60, "-i", "--interval", help="Seconds between rounds."
+    ),
+    duration: int = typer.Option(
+        21600, "-d", "--duration",
+        help="Total runtime in seconds; 0 = forever.",
+    ),
+    by_score: bool = typer.Option(
+        False, "--by-score",
+        help="Order AZ attempts by Spot placement score (best first).",
+    ),
+    profile: str = typer.Option(None, help="AWS profile name."),
+    region: str = typer.Option(
+        None, help="AWS region (derived from AZs if omitted)."
+    ),
+    save: bool = typer.Option(
+        False, help="Append the reservation to history."
+    ),
+    dry_run: bool = typer.Option(False, help="Print the plan and exit."),
+    output: OutputFormat = typer.Option(OutputFormat.table),
+):
+    """Poll across AZs to create an On-Demand Capacity Reservation."""
     if ctx.invoked_subcommand is not None:
         return
 
     if not instance_type:
-        instance_type = click.prompt("Instance type (e.g. g6.xlarge)")
+        instance_type = typer.prompt("Instance type (e.g. g6.xlarge)")
     az_list = _split(azs)
     region = region or _region_from_az(az_list[0])
 
     if dry_run:
         forever = "forever" if duration == 0 else f"{duration}s"
-        click.echo(
+        typer.echo(
             f"[dry-run] Would poll {region} every {interval}s for {forever}:\n"
             f"  type={instance_type} count={count}\n"
             f"  azs={', '.join(az_list)}"
@@ -246,12 +282,12 @@ def reserve(ctx, instance_type, azs, count, interval, duration, by_score,
             interval=interval, duration=duration, on_event=_reserve_logger(),
         )
     except (ReserveError, ScoringError) as err:
-        raise click.ClickException(str(err))
+        _fail(str(err))
 
-    if output == "json":
-        click.echo(json.dumps(asdict(result)))
+    if output == OutputFormat.json:
+        typer.echo(json.dumps(asdict(result)))
     else:
-        click.echo(result.reservation_id)
+        typer.echo(result.reservation_id)
         render_table_err(build_reservation_summary(result))
 
     if save:
@@ -271,72 +307,77 @@ def _order_azs_by_score(client, region, instance_type, az_list):
 
 
 @reserve.command(name="list")
-@click.option("--state", default="active", show_default=True,
-              help="Filter by reservation state (empty for all).")
-@click.option("--profile", help="AWS profile name.")
-@click.option("--region", required=True, help="AWS region.")
-@click.option("--output", type=click.Choice(["table", "json"]),
-              default="table", show_default=True)
-def list_(state, profile, region, output):
+def list_(
+    state: str = typer.Option(
+        "active", help="Filter by reservation state (empty for all)."
+    ),
+    profile: str = typer.Option(None, help="AWS profile name."),
+    region: str = typer.Option(..., help="AWS region."),
+    output: OutputFormat = typer.Option(OutputFormat.table),
+):
     """List existing capacity reservations."""
     try:
         client = _make_client(profile, region)
         reservations = list_reservations(client, state=state)
     except ReserveError as err:
-        raise click.ClickException(str(err))
+        _fail(str(err))
 
-    if output == "json":
-        click.echo(json.dumps([asdict(r) for r in reservations], indent=2))
+    if output == OutputFormat.json:
+        typer.echo(json.dumps([asdict(r) for r in reservations], indent=2))
     elif not reservations:
-        click.echo("No capacity reservations found.")
+        typer.echo("No capacity reservations found.")
     else:
         render_table(build_reservation_list_table(reservations))
 
 
 @reserve.command()
-@click.argument("reservation_id")
-@click.option("--profile", help="AWS profile name.")
-@click.option("--region", required=True, help="AWS region.")
-@click.option("--yes", is_flag=True, help="Skip the confirmation prompt.")
-def cancel(reservation_id, profile, region, yes):
+def cancel(
+    reservation_id: str = typer.Argument(...),
+    profile: str = typer.Option(None, help="AWS profile name."),
+    region: str = typer.Option(..., help="AWS region."),
+    yes: bool = typer.Option(False, help="Skip the confirmation prompt."),
+):
     """Cancel a capacity reservation by id."""
     if not yes:
-        click.confirm(
+        typer.confirm(
             f"Cancel capacity reservation {reservation_id}?", abort=True
         )
     try:
         client = _make_client(profile, region)
         cancel_reservation(client, reservation_id)
     except ReserveError as err:
-        raise click.ClickException(str(err))
-    click.echo(f"Cancelled {reservation_id}")
+        _fail(str(err))
+    typer.echo(f"Cancelled {reservation_id}")
 
 
 @main.command()
-@click.option("--preset", help="Filter history by preset.")
-@click.option("--region", help="Filter history by region.")
-@click.option("--kind", type=click.Choice(["scores", "reserve"]),
-              help="Filter by entry kind.")
-def history(preset, region, kind):
+def history(
+    preset: str = typer.Option(None, help="Filter history by preset."),
+    region: str = typer.Option(None, help="Filter history by region."),
+    kind: HistoryKind = typer.Option(None, help="Filter by entry kind."),
+):
     """Show saved history (score trends and reservations)."""
     meta_filter = {}
     if preset:
         meta_filter["preset"] = preset
-    runs = load_runs(meta_filter=meta_filter or None, kind=kind)
+    runs = load_runs(
+        meta_filter=meta_filter or None,
+        kind=kind.value if kind else None,
+    )
     if not runs:
-        click.echo("No history yet. Run a query with --save first.")
+        typer.echo("No history yet. Run a query with --save first.")
         return
     for run in runs:
-        click.echo(f"{run['timestamp']}  {run['meta']}")
+        typer.echo(f"{run['timestamp']}  {run['meta']}")
         if run.get("kind") == "reserve":
             res = run["reservation"]
-            click.echo(
+            typer.echo(
                 f"  reserved {res['reservation_id']} in "
                 f"{res['availability_zone']} ({res['instance_type']})"
             )
             continue
         for score in run.get("scores", []):
-            click.echo(
+            typer.echo(
                 f"  {score['region']} {score['availability_zone_id']} "
                 f"-> {score['score']}"
             )
