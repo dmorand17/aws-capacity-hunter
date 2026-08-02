@@ -1,7 +1,7 @@
 # tests/test_cli.py
 from unittest.mock import patch
 
-from click.testing import CliRunner
+from typer.testing import CliRunner
 
 from capacity_hunter.cli import main
 from capacity_hunter.reserve import ReservationResult, ReserveError
