@@ -58,10 +58,17 @@ scripts now live in [`legacy/`](legacy/), kept for reference only.
 
 ## Quick start
 
-Install the CLI globally with uv, then use it from anywhere:
+Install the CLI globally with uv straight from GitHub (no clone needed), then
+use it from anywhere:
 
 ```bash
-uv tool install .
+uv tool install git+https://github.com/dmorand17/aws-capacity-hunter
+```
+
+Or run it once without installing:
+
+```bash
+uvx --from git+https://github.com/dmorand17/aws-capacity-hunter capacity-hunter --help
 ```
 
 **Reserve capacity** — poll for a `g6.xlarge` across the default us-east-1 AZs
@@ -100,11 +107,14 @@ capacity-hunter scores
 
 Install the CLI on your `PATH` with
 [`uv tool`](https://docs.astral.sh/uv/guides/tools/) — an isolated environment
-managed by uv, no manual venv or `uv run` needed:
+managed by uv, no clone, manual venv, or `uv run` needed:
 
 ```bash
-uv tool install .
+uv tool install git+https://github.com/dmorand17/aws-capacity-hunter
 ```
+
+Pin a branch, tag, or commit by appending `@<ref>` to the URL. From a local
+clone, use `uv tool install .` instead.
 
 This installs the `capacity-hunter` command (and `spot-scores` as an alias), so
 you can run it from anywhere:
@@ -114,9 +124,20 @@ capacity-hunter --help
 capacity-hunter scores
 ```
 
-This is a snapshot install — after changing the source, refresh it with
-`uv tool install --reinstall .`. Manage it with `uv tool list`,
-`uv tool upgrade capacity-hunter`, and `uv tool uninstall capacity-hunter`.
+This is a snapshot install — to pick up new commits, rerun the install with
+`--reinstall` (or `uv tool upgrade capacity-hunter`). Manage it with
+`uv tool list` and `uv tool uninstall capacity-hunter`.
+
+### One-off run (no install)
+
+[`uvx`](https://docs.astral.sh/uv/guides/tools/) runs the CLI in a temporary,
+cached environment without installing anything:
+
+```bash
+uvx --from git+https://github.com/dmorand17/aws-capacity-hunter capacity-hunter scores
+```
+
+`--from` is required because the package isn't published to PyPI.
 
 ### From source (development)
 
